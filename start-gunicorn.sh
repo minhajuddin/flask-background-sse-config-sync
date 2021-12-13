@@ -1,3 +1,3 @@
 #!/bin/bash
 
-exec gunicorn server:app -k gevent --worker-connections 1000
+exec gunicorn server:app

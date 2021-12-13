@@ -3,19 +3,36 @@ import gevent
 import urllib3
 import io
 import json
+import atexit
+from logging.config import dictConfig
+
+dictConfig(
+    {
+        "version": 1,
+        "formatters": {
+            "default": {
+                "format": "[%(process)d:%(threadName)s:%(thread)d][%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+            }
+        },
+        "handlers": {
+            "wsgi": {
+                "class": "logging.StreamHandler",
+                "stream": "ext://flask.logging.wsgi_errors_stream",
+                "formatter": "default",
+            }
+        },
+        "root": {"level": "INFO", "handlers": ["wsgi"]},
+    }
+)
 
 
 app = Flask(__name__)
 sync_state = dict(status="init", sync=True, config_status="uninitialized")
 
 
-def stop_sync():
-    print("STOPPING SYNC")
-    sync_state.update(sync=False)
-
-
 def sync_config():
-    print("starting to sync")
+    sync = (True,)
+    app.logger.info("starting to sync")
     http = urllib3.PoolManager()
     resp = http.request(
         method="GET",
@@ -24,9 +41,18 @@ def sync_config():
         preload_content=False,
     )
     reader = io.BufferedReader(resp, 8)
+
+    def stop_sync():
+        sync[0] = False
+        app.logger.info("STOPPING SYNC")
+        sync_state.update(sync=False)
+        resp.release_conn()
+
+    atexit.register(stop_sync)
+
     while sync_state["sync"]:
         sync_state.update(status="running")
-        print("syncing ...")
+        app.logger.info("syncing ...")
         line = reader.readline().decode()
         if line.startswith("data: "):
             config = json.loads(line[6:].strip())
@@ -34,9 +60,9 @@ def sync_config():
                 sync_state["config_status"] == "uninitialized"
                 or sync_state["config"]["content_hash"] != config["content_hash"]
             ):
-                print("updating config")
+                app.logger.info("updating config")
                 sync_state.update(config_status="initialized", config=config)
-                print(sync_state["config"])
+                app.logger.info(sync_state["config"])
 
 
 sync_state.update(status="spawning")
@@ -55,7 +81,3 @@ def config():
 
 if __name__ == "__main__":
     app.run()
-
-import atexit
-
-atexit.register(stop_sync)
