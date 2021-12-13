@@ -1,7 +1,8 @@
 # number of processes
-workers = 3
+workers = 2
 worker_class = "gevent"
-threads = 4
+# threads setting is ignored for gevent
+#  threads = 8
 spew = False
 check_config = False
 print_config = False

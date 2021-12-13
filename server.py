@@ -12,7 +12,7 @@ dictConfig(
         "version": 1,
         "formatters": {
             "default": {
-                "format": "[%(process)d:%(threadName)s:%(thread)d][%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+                "format": "[%(process)d][%(asctime)s] %(levelname)s in %(module)s: %(message)s",
             }
         },
         "handlers": {
@@ -76,6 +76,13 @@ def sync_config():
 
 sync_state.update(status="spawning")
 gevent.spawn(sync_config)
+
+
+@app.before_first_request
+def wait_till_config_ready():
+    while sync_state["config_status"] == "uninitialized":
+        gevent.sleep(0.01)
+    app.logger.info("CONFIG READY")
 
 
 @app.route("/")
