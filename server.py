@@ -61,7 +61,7 @@ def sync_config():
 
     while sync_state["sync"]:
         sync_state.update(status="running")
-        app.logger.info("syncing ...")
+        #  app.logger.info("syncing ...")
         line = reader.readline().decode()
         if line.startswith("data: "):
             config = json.loads(line[6:].strip())
