@@ -1,7 +1,7 @@
 # number of processes
 workers = 3
 worker_class = "gevent"
-threads = 3
+threads = 4
 spew = False
 check_config = False
 print_config = False
