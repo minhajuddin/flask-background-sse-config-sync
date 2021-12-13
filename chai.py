@@ -4,6 +4,7 @@ import io
 import json
 import os
 import logging
+from flask import current_app
 
 state = dict(
     sync=True,
@@ -13,7 +14,7 @@ state = dict(
 
 
 def get_config(key, default):
-    return state["config"].get(key, default)
+    return state["config"]["configs"].get(key, default)
 
 
 # set it up via gunicorn
@@ -57,6 +58,8 @@ def start_sync_loop():
 
 
 def flask_setup(app):
+    start_sync_loop()
+
     @app.before_first_request
     def wait_till_config_ready():
         while not state["config_initialized"]:

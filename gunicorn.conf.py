@@ -1,8 +1,3 @@
-import chai
-import gevent.monkey
-
-gevent.monkey.patch_all()
-
 # number of processes
 workers = 2
 worker_class = "gevent"
@@ -34,7 +29,6 @@ def pre_fork(server, worker):
 
 
 def post_fork(server, worker):
-    chai.start_sync_loop()
     server.log.info("Post-forking worker {0}".format(worker.pid))
 
 

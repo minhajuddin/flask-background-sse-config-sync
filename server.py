@@ -30,7 +30,7 @@ chai.flask_setup(app)
 
 @app.route("/")
 def hello():
-    return f"Hello World! sync_state: {sync_state['status']}"
+    return "hello"
 
 
 @app.route("/config")
