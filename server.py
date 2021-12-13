@@ -5,6 +5,7 @@ import io
 import json
 import atexit
 from logging.config import dictConfig
+import os
 
 dictConfig(
     {
@@ -30,6 +31,10 @@ app = Flask(__name__)
 sync_state = dict(status="init", sync=True, config_status="uninitialized")
 
 
+def client_id():
+    return
+
+
 def sync_config():
     sync = (True,)
     app.logger.info("starting to sync")
@@ -37,7 +42,11 @@ def sync_config():
     resp = http.request(
         method="GET",
         url="https://chai.hyperngn.com/config-sse/pypy?env=prod&retailer=fdl",
-        headers={"Accept": "text/event-stream"},
+        headers={
+            "accept": "text/event-stream",
+            "client-id": f"{os.uname().nodename}-{os.getpid()}",
+            "client-version": f"{os.uname().release}{os.uname().version}",
+        },
         preload_content=False,
     )
     reader = io.BufferedReader(resp, 8)
