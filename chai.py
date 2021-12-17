@@ -12,6 +12,24 @@ state = dict(
     config_initialized=False,
 )
 
+# ```
+# # Provides a boolean value for the given key.
+# new_signup = { rollout: 90 }
+#  ```
+
+
+def percentage_rollout(config_name: str, user_id: int) -> bool:
+    # we default to 0% rollout if key is absent
+    config = get_config(config_name, dict(rollout=0))
+    if isinstance(config["rollout"], int) and isinstance(user_id, int):
+        mod_100 = user_id % 100
+        return mod_100 < config["rollout"]
+    else:
+        logging.warn(
+            f"rollout or user_id is not an int, user_id: {user_id} {config_name}: {config}, defaulting to false"
+        )
+        return False
+
 
 def get_config(key, default):
     return state["config"]["configs"].get(key, default)

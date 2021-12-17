@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from logging.config import dictConfig
 import chai
 
@@ -30,7 +30,12 @@ chai.flask_setup(app)
 
 @app.route("/")
 def hello():
-    return "hello"
+    app_name = chai.get_config("app_name", dict(value="CONFIG NOT FOUND"))["value"]
+    user_id = request.args.get("user_id", -1, type=int)
+    one_user_enabled = chai.percentage_rollout(
+        config_name="one_user_enabled", user_id=user_id
+    )
+    return f"<!doctype html><pre>app name: {app_name}\none_user_enabled: {one_user_enabled}</pre>"
 
 
 @app.route("/config")
